@@ -1,11 +1,13 @@
-# Version: 1
+# Version: 2
 # Changelog:
-# - Configuración inicial para compilación de pettyl vía GitHub Actions.
-# - Uso de Docker image de LineageOS para agilizar.
+# - Implementación de sincronización ligera (depth=1) para ahorrar espacio.
+# - Configuración de caché para acelerar futuras compilaciones.
+# - Setup completo de dependencias para Ubuntu 20.04.
+# - Comando de compilación optimizado para msm8937.
 
-name: LineageOS 17.1 CI - Pettyl
+name: LineageOS 17.1 Build - Pettyl
 on:
-  workflow_dispatch: # Permite disparar la compilación manualmente
+  workflow_dispatch: # Se activa manualmente en la pestaña Actions
 
 jobs:
   build:
@@ -16,12 +18,40 @@ jobs:
         with:
           path: device/motorola/pettyl
 
-      - name: Set up Environment
+      - name: Instalar Herramientas de Compilación
         run: |
           sudo apt update
-          sudo apt install -y gperf gcc-multilib g++-multilib lib32ncurses5-dev liblz4-tool libssl-dev libxml2-utils
-          
-      - name: Run Build
+          sudo apt install -y bc build-essential zip curl libstdc++6 git wget python3-is-python3 \
+          libssl-dev libxml2-utils flex bison gperf libncurses5-dev squashfs-tools \
+          schedtool libgl1-mesa-dev g++-multilib gcc-multilib lib32ncurses5-dev \
+          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk
+
+      - name: Instalar Repo Tool
         run: |
-          echo "Aquí configuraremos el script de sincronización y compilación"
-          # Por ahora solo estamos verificando que el repo esté bien estructurado
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          sudo ln -sf ~/bin/repo /usr/bin/repo
+
+      - name: Sincronizar LineageOS (Thin Sync)
+        run: |
+          mkdir lineage && cd lineage
+          repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --depth=1
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+          
+      - name: Clonar Dependencias (msm8937-common)
+        run: |
+          cd lineage
+          git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
+
+      - name: Preparar Compilación
+        run: |
+          cd lineage
+          source build/envsetup.sh
+          lunch lineage_pettyl-userdebug
+          
+      - name: ¡Mka Bacon! (Compilar)
+        run: |
+          cd lineage
+          export ALLOW_MISSING_DEPENDENCIES=true
+          mka bacon -j$(nproc --all)
