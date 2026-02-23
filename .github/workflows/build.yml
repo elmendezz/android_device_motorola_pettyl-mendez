@@ -1,30 +1,62 @@
-# Version: 4
+# Version: 6
 # Changelog:
-# - Se cambió el nombre del producto de james a pettyl.
-# - Se actualizaron las rutas de herencia a pettyl.
-# - Se añadieron las flags de Android Go Edition para optimizar RAM.
-# - Se corrigió el orden de herencia para asegurar que vendor/lineage cargue después de las bases de AOSP.
-# - Se eliminó la herencia de core_64bit.mk y full_base_telephony.mk, ya que el dispositivo opera en 32 bits y LineageOS ya provee la base con common_full_phone.mk.
+# - Se mantiene la estructura de la V4/V5.
+# - Se añadió un paso de Debug (ls -R) para verificar la existencia de los archivos .mk en la ruta correcta.
 
-# Configuración de Android Go (Low RAM)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/mainline_low_ram.mk)
+name: LineageOS 17.1 Build - Pettyl
+on:
+  workflow_dispatch:
 
-# Heredar del árbol de dispositivo (el cual define la arquitectura base)
-$(call inherit-product, device/motorola/pettyl/device.mk)
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Instalar Herramientas de Compilación
+        run: |
+          sudo apt update
+          sudo apt install -y bc build-essential zip curl libstdc++6 git wget \
+          libssl-dev libxml2-utils flex bison gperf libncurses5-dev squashfs-tools \
+          schedtool libgl1-mesa-dev g++-multilib gcc-multilib lib32ncurses5-dev \
+          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk python-is-python3 || true
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
 
-# IMPORTANTE: Heredar de Lineage al final para que sobreescriba configuraciones globales y aporte la base de telefonía
-$(call inherit-product, vendor/lineage/config/common_full_phone.mk)
+      - name: Instalar Repo Tool
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          sudo ln -sf ~/bin/repo /usr/bin/repo
 
-# Identificadores del Producto
-PRODUCT_NAME := lineage_pettyl
-PRODUCT_DEVICE := pettyl
-PRODUCT_BRAND := motorola
-PRODUCT_MODEL := Moto E5 Play
-PRODUCT_MANUFACTURER := motorola
+      - name: Sincronizar LineageOS (Thin Sync)
+        run: |
+          mkdir lineage && cd lineage
+          repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --depth=1
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+          
+      - name: Checkout Device Tree
+        uses: actions/checkout@v3
+        with:
+          path: lineage/device/motorola/pettyl
 
-PRODUCT_GMS_CLIENTID_BASE := android-motorola
+      - name: Clonar Dependencias (msm8937-common)
+        run: |
+          cd lineage
+          git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
 
-PRODUCT_BUILD_PROP_OVERRIDES += \
-    PRODUCT_NAME=pettyl \
-    TARGET_DEVICE=pettyl
+      - name: Verificar Archivos (Debug)
+        run: |
+          echo "Verificando que los makefiles existan en la ruta correcta..."
+          ls -l lineage/device/motorola/pettyl/AndroidProducts.mk
+          ls -l lineage/device/motorola/pettyl/lineage_pettyl.mk
+
+      - name: Preparar Compilación
+        run: |
+          cd lineage
+          source build/envsetup.sh
+          lunch lineage_pettyl-userdebug
+          
+      - name: ¡Mka Bacon! (Compilar)
+        run: |
+          cd lineage
+          export ALLOW_MISSING_DEPENDENCIES=true
+          mka bacon -j$(nproc --all)
