@@ -1,26 +1,28 @@
 #!/bin/bash
-#
-# Copyright (C) 2019 The LineageOS Project
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-# If we're being sourced by the common script that we called,
-# stop right here. No need to go down the rabbit hole.
-if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
-    return
-fi
-
-set -e
-
-# Version: 1
+# Version: 6
 # Changelog:
-# - Se cambió la variable DEVICE de james a pettyl.
+# - Se añadió la ruta explícita a proprietary-files.txt en la llamada a extract.
+# - Se simplificó la inicialización del vendor.
 
 export DEVICE=pettyl
-export DEVICE_COMMON=msm8937-common
 export VENDOR=motorola
 
-export DEVICE_BRINGUP_YEAR=2019
+# Definir la raíz del proyecto (3 niveles arriba de device/motorola/pettyl)
+export ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
-"./../../${VENDOR}/${DEVICE_COMMON}/extract-files.sh" "$@"
+# Cargar utilidades locales
+if [ -f "./extract_utils.sh" ]; then
+    source "./extract_utils.sh"
+else
+    echo "Error: Falta extract_utils.sh en la carpeta local."
+    exit 1
+fi
+
+# Configurar el entorno de vendor
+setup_vendor "${DEVICE}" "${VENDOR}" "${ROOT}"
+
+# AQUÍ ESTÁ EL TRUCO: 
+# Pasamos primero el archivo de la lista y luego el método (adb)
+extract "${PWD}/proprietary-files.txt" "adb"
+
+common_struct_fixup
