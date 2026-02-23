@@ -1,9 +1,11 @@
-# Version: 3
+# Version: 4
 # Changelog:
 # - Se corrigió el nombre del paquete python-is-python3.
 # - Se añadió un paso manual para el symlink de python si falla el paquete.
 # - Se optimizó la instalación de dependencias para evitar errores de mirror.
 # - Se mantiene la configuración para pettyl (Moto E5 Play Go).
+# - Se corrigió la ruta del Checkout para que el Device Tree quede dentro de la carpeta del source.
+# - Se añadió la creación de la carpeta lineage antes del checkout para evitar conflictos de rutas.
 
 name: LineageOS 17.1 Build - Pettyl
 on:
@@ -13,11 +15,6 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout Device Tree
-        uses: actions/checkout@v3
-        with:
-          path: device/motorola/pettyl
-
       - name: Instalar Herramientas de Compilación
         run: |
           sudo apt update
@@ -42,16 +39,23 @@ jobs:
           repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --depth=1
           repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           
+      - name: Checkout Device Tree
+        uses: actions/checkout@v3
+        with:
+          # IMPORTANTE: Ahora se descarga dentro de la estructura de carpetas de Lineage
+          path: lineage/device/motorola/pettyl
+
       - name: Clonar Dependencias (msm8937-common)
         run: |
           cd lineage
+          # Clonamos el common que necesita tu pettyl
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
 
       - name: Preparar Compilación
         run: |
           cd lineage
           source build/envsetup.sh
-          # Usamos los valores definidos en tu BoardConfig.mk como density 320 y manifest 
+          # Ahora lunch sí debería encontrar los archivos en device/motorola/pettyl
           lunch lineage_pettyl-userdebug
           
       - name: ¡Mka Bacon! (Compilar)
