@@ -1,12 +1,13 @@
-# Version: 7
+# Version: 9
 # Changelog:
-# - Optimización agresiva de repo sync (Thin Sync + Depth 1).
-# - Se añadieron las flags --no-tags y --current-branch para reducir descarga.
-# - Se ajustó el número de hilos de repo sync a 4 para mayor estabilidad en GHA.
-# - Se mantiene la ruta corregida para pettyl (Moto E5 Play).
-# - Se incluye el fix de PRODUCT_IS_LOW_RAM en el flujo lógico.
+# - Se añadió actions/cache para persistir la carpeta .repo y reducir el tiempo de sync al mínimo.
+# - Se implementó CCACHE para acelerar la compilación en ejecuciones sucesivas.
+# - Se mantiene la optimización de Shallow Clone (depth=1) de la V7.
+# - Se corrigió el error 'mka: command not found' fusionando los pasos de preparación y compilación en un solo bloque 'run'.
+# - Se asegura que envsetup.sh y lunch se ejecuten en la misma sesión de shell que mka bacon.
+# - Se mantienen todas las correcciones previas para pettyl (Android Go / Low RAM).
 
-name: LineageOS 17.1 Build - Pettyl
+name: LineageOS 17.1 Build - Pettyl (Turbo Mode)
 on:
   workflow_dispatch:
 
@@ -14,14 +15,30 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
+      - name: Maximizar Espacio en Disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf /etc/apt/sources.list.d/*
+
       - name: Instalar Herramientas de Compilación
         run: |
           sudo apt update
           sudo apt install -y bc build-essential zip curl libstdc++6 git wget \
           libssl-dev libxml2-utils flex bison gperf libncurses5-dev squashfs-tools \
           schedtool libgl1-mesa-dev g++-multilib gcc-multilib lib32ncurses5-dev \
-          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk python-is-python3 || true
+          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk python-is-python3 ccache || true
           sudo ln -sf /usr/bin/python3 /usr/bin/python
+
+      - name: Configurar Cache de Repo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.ccache
+            lineage/.repo
+          key: ${{ runner.os }}-repo-lineage-17.1-${{ hashFiles('lineage/.repo/manifests/default.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-repo-lineage-17.1-
 
       - name: Instalar Repo Tool
         run: |
@@ -30,18 +47,11 @@ jobs:
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
 
-      - name: Sincronizar LineageOS (Super Fast Sync)
+      - name: Sincronizar LineageOS (Fast Sync)
         run: |
-          mkdir lineage && cd lineage
-          # --depth=1: Solo trae el último commit, no todo el historial (Ahorra GBs)
+          mkdir -p lineage && cd lineage
           repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --depth=1
-          
-          # Flags optimizadas:
-          # -c: Solo la rama actual
-          # -j4: 4 hilos (más estable en GHA para evitar desconexiones)
-          # --no-tags: No descarga etiquetas innecesarias
-          # --no-clone-bundle: Salta optimizaciones de bundle que a veces fallan
-          repo sync -c -j4 --force-sync --no-clone-bundle --no-tags
+          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
       - name: Checkout Device Tree
         uses: actions/checkout@v3
@@ -51,18 +61,22 @@ jobs:
       - name: Clonar Dependencias (msm8937-common)
         run: |
           cd lineage
-          # También usamos --depth=1 aquí
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
 
-      - name: Preparar Compilación
+      - name: Compilar LineageOS (Todo en uno)
         run: |
           cd lineage
+          # Configurar CCACHE para que no empiece de cero si repites
+          export USE_CCACHE=1
+          export CCACHE_EXEC=/usr/bin/ccache
+          ccache -M 5G
+          
+          # Variables de entorno críticas
+          export ALLOW_MISSING_DEPENDENCIES=true
+          
+          # ¡AQUÍ ESTÁ EL TRUCO! Todo en la misma sesión de shell
           source build/envsetup.sh
           lunch lineage_pettyl-userdebug
           
-      - name: ¡Mka Bacon! (Compilar)
-        run: |
-          cd lineage
-          export ALLOW_MISSING_DEPENDENCIES=true
-          # Usamos todos los núcleos para el mka
+          # Empezar la magia
           mka bacon -j$(nproc --all)
