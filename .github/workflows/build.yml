@@ -1,11 +1,10 @@
-# Version: 9
+# Version: 10
 # Changelog:
-# - Se añadió actions/cache para persistir la carpeta .repo y reducir el tiempo de sync al mínimo.
-# - Se implementó CCACHE para acelerar la compilación en ejecuciones sucesivas.
-# - Se mantiene la optimización de Shallow Clone (depth=1) de la V7.
-# - Se corrigió el error 'mka: command not found' fusionando los pasos de preparación y compilación en un solo bloque 'run'.
-# - Se asegura que envsetup.sh y lunch se ejecuten en la misma sesión de shell que mka bacon.
-# - Se mantienen todas las correcciones previas para pettyl (Android Go / Low RAM).
+# - Se añadió el clonado del repositorio de Vendor (proprietary_vendor_motorola) para solucionar el error de soong_namespace.
+# - Se ajustó la ruta del vendor a vendor/motorola para que coincida con las dependencias de msm8937-common.
+# - Se mantiene el uso de cache y CCACHE para máxima velocidad.
+# - Se fusionan todos los pasos de compilación en un bloque único para evitar pérdida de variables de entorno.
+# - Se mantiene la configuración de Android Go (Low RAM) para pettyl.
 
 name: LineageOS 17.1 Build - Pettyl (Turbo Mode)
 on:
@@ -58,25 +57,27 @@ jobs:
         with:
           path: lineage/device/motorola/pettyl
 
-      - name: Clonar Dependencias (msm8937-common)
+      - name: Clonar Dependencias (MSM8937-Common & Vendor)
         run: |
           cd lineage
+          # Clonar el árbol común del dispositivo
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
+          
+          # Clonar el repositorio de VENDOR (el que me pasaste)
+          # Se clona en vendor/motorola para que las rutas internas coincidan
+          git clone https://github.com/elmendezz/proprietary_vendor_motorola -b lineage-17.1 vendor/motorola --depth=1
 
-      - name: Compilar LineageOS (Todo en uno)
+      - name: Compilar LineageOS (The Moment of Truth)
         run: |
           cd lineage
-          # Configurar CCACHE para que no empiece de cero si repites
           export USE_CCACHE=1
           export CCACHE_EXEC=/usr/bin/ccache
           ccache -M 5G
           
-          # Variables de entorno críticas
           export ALLOW_MISSING_DEPENDENCIES=true
           
-          # ¡AQUÍ ESTÁ EL TRUCO! Todo en la misma sesión de shell
           source build/envsetup.sh
+          # lunch ahora encontrará el vendor y el soong_namespace
           lunch lineage_pettyl-userdebug
           
-          # Empezar la magia
           mka bacon -j$(nproc --all)
