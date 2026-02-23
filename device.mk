@@ -1,5 +1,10 @@
-# Version: 4
-# Changelog: Eliminación de etiquetas de texto y definición de LOCAL_PATH.
+# Version: 5
+# Changelog:
+# - Se actualizó la resolución para el cálculo del bootanimation (480x960).
+# - Se eliminaron etiquetas de origen de texto para limpiar el archivo de reglas de Make.
+# - Se asegura la definición de LOCAL_PATH para evitar rutas nulas.
+# - Se mantienen todos los PRODUCT_COPY_FILES para audio, cámara y sensores.
+# - Se mantiene la configuración de Low RAM (Android Go).
 
 LOCAL_PATH := device/motorola/pettyl
 
@@ -13,8 +18,8 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/go_defaults.mk)
 $(call inherit-product-if-exists, vendor/motorola/pettyl/pettyl-vendor.mk)
 
 # Boot animation
-TARGET_SCREEN_HEIGHT := 1280
-TARGET_SCREEN_WIDTH := 720
+TARGET_SCREEN_HEIGHT := 960
+TARGET_SCREEN_WIDTH := 480
 
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += \
@@ -57,7 +62,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf \
     $(LOCAL_PATH)/configs/sensors/sensor_def_qcomdev.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/sensor_def_qcomdev.conf
 
-# Optimización de Memoria (Go Edition)
+# Optimización de Memoria (Go Edition Specific)
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.config.low_ram=true \
     ro.lmk.low=1001 \
