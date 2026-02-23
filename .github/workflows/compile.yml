@@ -1,0 +1,19 @@
+name: LineageOS Build
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Build Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential zip curl libstdc++6 git wget
+
+      - name: Sync LineageOS
+        run: |
+          # Aquí iría el repo init y repo sync (esto toma tiempo en el server)
+          echo "Sincronizando fuentes..."

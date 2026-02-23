@@ -22,10 +22,18 @@ TARGET_SCREEN_DENSITY := 320 [cite: 1]
 # HIDL
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/manifest.xml [cite: 1]
 
-# Kernel
-# Asegúrate de que el defconfig sea el correcto para el kernel 3.18/4.9 de pettyl
-TARGET_KERNEL_CONFIG := pettyl_defconfig
-TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/etc/fstab.qcom
+# Kernel - Usando Prebuilt para agilizar
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/kernel
+BOARD_BOOTIMG_HEADER_VERSION := 0
+BOARD_KERNEL_PAGESIZE := 2048
+BOARD_KERNEL_BASE     := 0x80000000
+BOARD_KERNEL_TAGS_ADDR := 0x80000100
+BOARD_KERNEL_OFFSET    := 0x00008000
+BOARD_RAMDISK_OFFSET   := 0x01000000
+BOARD_KERNEL_CMDLINE := console=ttyMSM0,115200n8 androidboot.console=ttyMSM0 androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3f ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci lpm_levels.sleep_disabled=1 earlycon=msm_hsl,0x78b0000
+
+# BoardConfig.mk - Update
+
 
 # Particiones
 # El tamaño del recovery se mantiene según tu dump inicial [cite: 4]

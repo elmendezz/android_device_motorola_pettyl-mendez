@@ -1,0 +1,27 @@
+# Version: 1
+# Changelog:
+# - Configuración inicial para compilación de pettyl vía GitHub Actions.
+# - Uso de Docker image de LineageOS para agilizar.
+
+name: LineageOS 17.1 CI - Pettyl
+on:
+  workflow_dispatch: # Permite disparar la compilación manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Device Tree
+        uses: actions/checkout@v3
+        with:
+          path: device/motorola/pettyl
+
+      - name: Set up Environment
+        run: |
+          sudo apt update
+          sudo apt install -y gperf gcc-multilib g++-multilib lib32ncurses5-dev liblz4-tool libssl-dev libxml2-utils
+          
+      - name: Run Build
+        run: |
+          echo "Aquí configuraremos el script de sincronización y compilación"
+          # Por ahora solo estamos verificando que el repo esté bien estructurado
