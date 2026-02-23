@@ -16,10 +16,19 @@
 # limitations under the License.
 #
 
+# Version: 1
+# Changelog:
+# - Se cambió la variable 'device' de james a pettyl.
+# - Se mantiene la ruta hacia la carpeta vendor/motorola/pettyl.
+# - Se conserva la lógica de limpieza y actualización de hashes SHA1.
+
 from hashlib import sha1
 import sys
 
-device='james'
+# Dependencias: Este script requiere acceso de lectura/escritura al archivo proprietary-files.txt
+# y que los archivos ya estén extraídos en la carpeta vendor correspondiente.
+
+device='pettyl'
 vendor='motorola'
 
 lines = [ line for line in open('proprietary-files.txt', 'r') ]
@@ -41,6 +50,7 @@ def cleanup():
       lines[index] = '%s\n' % (line)
 
 def update():
+  global needSHA1
   for index, line in enumerate(lines):
     # Remove '\n' character
     line = line[:-1]
@@ -59,13 +69,16 @@ def update():
       line = line.split('|')[0]
       filePath = line.split(':')[1] if len(line.split(':')) == 2 else line
 
-      if filePath[0] == '-':
-        file = open('%s/%s' % (vendorPath, filePath[1:]), 'rb').read()
-      else:
-        file = open('%s/%s' % (vendorPath, filePath), 'rb').read()
+      try:
+        if filePath[0] == '-':
+          file_content = open('%s/%s' % (vendorPath, filePath[1:]), 'rb').read()
+        else:
+          file_content = open('%s/%s' % (vendorPath, filePath), 'rb').read()
 
-      hash = sha1(file).hexdigest()
-      lines[index] = '%s|%s\n' % (line, hash)
+        hash_val = sha1(file_content).hexdigest()
+        lines[index] = '%s|%s\n' % (line, hash_val)
+      except IOError:
+        print('Warning: Failed to open %s/%s' % (vendorPath, filePath))
 
 if len(sys.argv) == 2 and sys.argv[1] == '-c':
   cleanup()
