@@ -4,6 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+# Version: 1
+# Changelog:
+# - Se cambió la validación TARGET_DEVICE de james a pettyl.
+# - Se mantiene la lógica de inclusión de sub-makefiles para componentes específicos de hardware.
+
 # This contains the module build definitions for the hardware-specific
 # components for this device.
 #
@@ -15,7 +20,7 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(TARGET_DEVICE),james)
+ifeq ($(TARGET_DEVICE),pettyl)
   subdir_makefiles=$(call first-makefiles-under,$(LOCAL_PATH))
   $(foreach mk,$(subdir_makefiles),$(info including $(mk) ...)$(eval include $(mk)))
 endif
