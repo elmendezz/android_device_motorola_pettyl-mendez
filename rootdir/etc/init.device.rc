@@ -1,13 +1,25 @@
+#
+# Copyright (C) 2019 The LineageOS Project
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Version: 1
+# Changelog:
+# - Se cambió el hardware de sensores de james a pettyl.
+# - Se actualizaron las propiedades de variante para el modelo XT1921-2 (común en pettyl).
+# - Se mantuvieron las optimizaciones de dalvik y threads para dispositivos de bajos recursos.
+
 on init
     # Set Hardware properties
-    setprop ro.hardware.sensors james
+    setprop ro.hardware.sensors pettyl
     setprop ro.hw.imager 8MP
 
-    # Variant properties
-on property:ro.boot.hardware.sku=XT1921-3
+    # Variant properties para pettyl (Generalmente XT1921-2 o variantes Go)
+on property:ro.boot.hardware.sku=XT1921-2
     setprop ro.opengles.version 196608
-    setprop ro.product.model XT1921-3
-    setprop ro.product.name james_t
+    setprop ro.product.model XT1921-2
+    setprop ro.product.name pettyl
     setprop dalvik.vm.dex2oat-threads 2
     setprop persist.vendor.audio.fluence.speaker false
     setprop ro.hw.ecompass false
@@ -17,7 +29,8 @@ on property:ro.boot.hardware.sku=XT1921-3
     setprop ro.vendor.sensors.laccel false
     setprop ro.vendor.sensors.amd false
     setprop debug.hwui.use_buffer_age false
-    setprop persist.radio.customer_mbns tmo_usa_ims_default.mbn
+    # Ajuste de MBN para radio genérica o específica (se puede comentar si da problemas de señal)
+    # setprop persist.radio.customer_mbns vzw_usa_ims_default.mbn
     setprop persist.vendor.ims.playout_delay 10
     setprop persist.vendor.ims.cam_sensor_delay 20
     setprop persist.vendor.ims.display_delay 40
