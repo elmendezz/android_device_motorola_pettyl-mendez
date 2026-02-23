@@ -5,10 +5,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+# Version: 1
+# Changelog:
+# - Se actualizó la variable DEVICE de james a pettyl para la generación de archivos vendor.
+# - Se mantiene la herencia del script común de msm8937.
+
 set -e
 
 # Required!
-export DEVICE=james
+export DEVICE=pettyl
 export DEVICE_COMMON=msm8937-common
 export VENDOR=motorola
 
