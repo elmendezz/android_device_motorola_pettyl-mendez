@@ -1,10 +1,9 @@
-# Version: 10
+# Version: 11
 # Changelog:
-# - Se añadió el clonado del repositorio de Vendor (proprietary_vendor_motorola) para solucionar el error de soong_namespace.
-# - Se ajustó la ruta del vendor a vendor/motorola para que coincida con las dependencias de msm8937-common.
-# - Se mantiene el uso de cache y CCACHE para máxima velocidad.
-# - Se fusionan todos los pasos de compilación en un bloque único para evitar pérdida de variables de entorno.
-# - Se mantiene la configuración de Android Go (Low RAM) para pettyl.
+# - Se añadió el clonado del repositorio de Vendor (proprietary_vendor_motorola).
+# - Se añadieron las dependencias del Kernel (msm8937) y Hardware (motorola).
+# - Se eliminó ALLOW_MISSING_DEPENDENCIES=true para revelar errores reales de dependencias.
+# - Se ajustó la ruta del vendor a vendor/motorola.
 
 name: LineageOS 17.1 Build - Pettyl (Turbo Mode)
 on:
@@ -57,14 +56,19 @@ jobs:
         with:
           path: lineage/device/motorola/pettyl
 
-      - name: Clonar Dependencias (MSM8937-Common & Vendor)
+      - name: Clonar Dependencias (MSM8937-Common, Vendor, Kernel y Hardware)
         run: |
           cd lineage
           # Clonar el árbol común del dispositivo
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
           
-          # Clonar el repositorio de VENDOR (el que me pasaste)
-          # Se clona en vendor/motorola para que las rutas internas coincidan
+          # Clonar el Kernel (necesario para compilar el boot.img)
+          git clone https://github.com/LineageOS/android_kernel_motorola_msm8937 -b lineage-17.1 kernel/motorola/msm8937 --depth=1
+          
+          # Clonar repositorio de hardware específico de motorola
+          git clone https://github.com/LineageOS/android_hardware_motorola -b lineage-17.1 hardware/motorola --depth=1
+          
+          # Clonar el repositorio de VENDOR
           git clone https://github.com/elmendezz/proprietary_vendor_motorola -b lineage-17.1 vendor/motorola --depth=1
 
       - name: Compilar LineageOS (The Moment of Truth)
@@ -74,10 +78,9 @@ jobs:
           export CCACHE_EXEC=/usr/bin/ccache
           ccache -M 5G
           
-          export ALLOW_MISSING_DEPENDENCIES=true
+          # Eliminamos ALLOW_MISSING_DEPENDENCIES para no enmascarar errores reales
           
           source build/envsetup.sh
-          # lunch ahora encontrará el vendor y el soong_namespace
           lunch lineage_pettyl-userdebug
           
           mka bacon -j$(nproc --all)
