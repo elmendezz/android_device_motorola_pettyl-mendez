@@ -1,13 +1,7 @@
-#
-# Copyright (C) 2019 The LineageOS Project
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-# Version: 3
-# Changelog:
-# - Se cambiaron referencias de james a pettyl.
-# - Se activó el modo Android Go Edition.
-# - Se añadieron flags de optimización de memoria.
+# Version: 4
+# Changelog: Eliminación de etiquetas de texto y definición de LOCAL_PATH.
+
+LOCAL_PATH := device/motorola/pettyl
 
 # Heredar del msm8937-common
 $(call inherit-product, device/motorola/msm8937-common/msm8937.mk)
@@ -35,7 +29,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/audio/audio_platform_info.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_platform_info.xml \
     $(LOCAL_PATH)/audio/mixer_paths.xml:$(TARGET_COPY_OUT_VENDOR)/etc/mixer_paths.xml
 
-# Camera (Ajustado para pettyl)
+# Camera
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/camera/mot_hi556_byd_chromatix.xml:$(TARGET_COPY_OUT_VENDOR)/etc/camera/mot_hi556_byd_chromatix.xml \
     $(LOCAL_PATH)/configs/camera/mot_hi556_chromatix.xml:$(TARGET_COPY_OUT_VENDOR)/etc/camera/mot_hi556_chromatix.xml \
@@ -58,16 +52,12 @@ PRODUCT_PACKAGES += \
     init.device.rc \
     init.qcom.sensors.sh
 
-# Releasetools script
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/check_device.sh:install/bin/check_device.sh
-
 # Sensors Config
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf \
     $(LOCAL_PATH)/configs/sensors/sensor_def_qcomdev.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/sensor_def_qcomdev.conf
 
-# Optimización de Memoria (Go Edition Specific)
+# Optimización de Memoria (Go Edition)
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.config.low_ram=true \
     ro.lmk.low=1001 \
