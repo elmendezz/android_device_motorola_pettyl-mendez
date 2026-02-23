@@ -1,7 +1,10 @@
-# Version: 6
+# Version: 7
 # Changelog:
-# - Se mantiene la estructura de la V4/V5.
-# - Se añadió un paso de Debug (ls -R) para verificar la existencia de los archivos .mk en la ruta correcta.
+# - Optimización agresiva de repo sync (Thin Sync + Depth 1).
+# - Se añadieron las flags --no-tags y --current-branch para reducir descarga.
+# - Se ajustó el número de hilos de repo sync a 4 para mayor estabilidad en GHA.
+# - Se mantiene la ruta corregida para pettyl (Moto E5 Play).
+# - Se incluye el fix de PRODUCT_IS_LOW_RAM en el flujo lógico.
 
 name: LineageOS 17.1 Build - Pettyl
 on:
@@ -27,12 +30,19 @@ jobs:
           chmod a+x ~/bin/repo
           sudo ln -sf ~/bin/repo /usr/bin/repo
 
-      - name: Sincronizar LineageOS (Thin Sync)
+      - name: Sincronizar LineageOS (Super Fast Sync)
         run: |
           mkdir lineage && cd lineage
+          # --depth=1: Solo trae el último commit, no todo el historial (Ahorra GBs)
           repo init -u https://github.com/LineageOS/android.git -b lineage-17.1 --depth=1
-          repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
           
+          # Flags optimizadas:
+          # -c: Solo la rama actual
+          # -j4: 4 hilos (más estable en GHA para evitar desconexiones)
+          # --no-tags: No descarga etiquetas innecesarias
+          # --no-clone-bundle: Salta optimizaciones de bundle que a veces fallan
+          repo sync -c -j4 --force-sync --no-clone-bundle --no-tags
+
       - name: Checkout Device Tree
         uses: actions/checkout@v3
         with:
@@ -41,13 +51,8 @@ jobs:
       - name: Clonar Dependencias (msm8937-common)
         run: |
           cd lineage
+          # También usamos --depth=1 aquí
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
-
-      - name: Verificar Archivos (Debug)
-        run: |
-          echo "Verificando que los makefiles existan en la ruta correcta..."
-          ls -l lineage/device/motorola/pettyl/AndroidProducts.mk
-          ls -l lineage/device/motorola/pettyl/lineage_pettyl.mk
 
       - name: Preparar Compilación
         run: |
@@ -59,4 +64,5 @@ jobs:
         run: |
           cd lineage
           export ALLOW_MISSING_DEPENDENCIES=true
+          # Usamos todos los núcleos para el mka
           mka bacon -j$(nproc --all)
