@@ -1,5 +1,10 @@
-# Version: 3
-# Changelog: Limpieza de etiquetas de texto y corrección de sintaxis.
+# Version: 4
+# Changelog:
+# - Se corrigió la resolución de pantalla a 480x960 según especificaciones del usuario.
+# - Se ajustó la densidad de pantalla (DPI) a 240 para FWVGA+.
+# - Se eliminaron etiquetas de texto y caracteres especiales que causaban error de target patterns.
+# - Se mantiene el soporte para ZRAM y optimizaciones de 1GB RAM.
+# - Se mantiene la ruta del manifest y sepolicy.
 
 # Heredar del msm8937-common
 -include device/motorola/msm8937-common/BoardConfigCommon.mk
@@ -7,14 +12,14 @@
 DEVICE_PATH := device/motorola/pettyl
 
 # Pantalla
-TARGET_SCREEN_HEIGHT := 1280
-TARGET_SCREEN_WIDTH := 720
-TARGET_SCREEN_DENSITY := 320
+TARGET_SCREEN_HEIGHT := 960
+TARGET_SCREEN_WIDTH := 480
+TARGET_SCREEN_DENSITY := 240
 
 # HIDL
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/manifest.xml
 
-# Kernel - Usando Prebuilt para agilizar
+# Kernel - Usando Prebuilt
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/kernel
 BOARD_BOOTIMG_HEADER_VERSION := 0
 BOARD_KERNEL_PAGESIZE := 2048
