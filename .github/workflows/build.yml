@@ -1,11 +1,7 @@
-# Version: 4
+# Version: 6
 # Changelog:
-# - Se corrigió el nombre del paquete python-is-python3.
-# - Se añadió un paso manual para el symlink de python si falla el paquete.
-# - Se optimizó la instalación de dependencias para evitar errores de mirror.
-# - Se mantiene la configuración para pettyl (Moto E5 Play Go).
-# - Se corrigió la ruta del Checkout para que el Device Tree quede dentro de la carpeta del source.
-# - Se añadió la creación de la carpeta lineage antes del checkout para evitar conflictos de rutas.
+# - Se mantiene la estructura de la V4/V5.
+# - Se añadió un paso de Debug (ls -R) para verificar la existencia de los archivos .mk en la ruta correcta.
 
 name: LineageOS 17.1 Build - Pettyl
 on:
@@ -22,8 +18,6 @@ jobs:
           libssl-dev libxml2-utils flex bison gperf libncurses5-dev squashfs-tools \
           schedtool libgl1-mesa-dev g++-multilib gcc-multilib lib32ncurses5-dev \
           lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk python-is-python3 || true
-          
-          # Asegurar que python existe aunque falle el paquete anterior
           sudo ln -sf /usr/bin/python3 /usr/bin/python
 
       - name: Instalar Repo Tool
@@ -42,20 +36,23 @@ jobs:
       - name: Checkout Device Tree
         uses: actions/checkout@v3
         with:
-          # IMPORTANTE: Ahora se descarga dentro de la estructura de carpetas de Lineage
           path: lineage/device/motorola/pettyl
 
       - name: Clonar Dependencias (msm8937-common)
         run: |
           cd lineage
-          # Clonamos el common que necesita tu pettyl
           git clone https://github.com/LineageOS/android_device_motorola_msm8937-common -b lineage-17.1 device/motorola/msm8937-common --depth=1
+
+      - name: Verificar Archivos (Debug)
+        run: |
+          echo "Verificando que los makefiles existan en la ruta correcta..."
+          ls -l lineage/device/motorola/pettyl/AndroidProducts.mk
+          ls -l lineage/device/motorola/pettyl/lineage_pettyl.mk
 
       - name: Preparar Compilación
         run: |
           cd lineage
           source build/envsetup.sh
-          # Ahora lunch sí debería encontrar los archivos en device/motorola/pettyl
           lunch lineage_pettyl-userdebug
           
       - name: ¡Mka Bacon! (Compilar)
