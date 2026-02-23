@@ -5,6 +5,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+# Version: 1
+# Changelog:
+# - Se actualizó la variable DEVICE a pettyl.
+# - Se mantiene la referencia al common msm8937.
+# - Se conserva el año de bringup 2019.
+
 # If we're being sourced by the common script that we called,
 # stop right here. No need to go down the rabbit hole.
 if [ "${BASH_SOURCE[0]}" != "${0}" ]; then
@@ -14,7 +20,7 @@ fi
 set -e
 
 # Required!
-export DEVICE=james
+export DEVICE=pettyl
 export DEVICE_COMMON=msm8937-common
 export VENDOR=motorola
 
