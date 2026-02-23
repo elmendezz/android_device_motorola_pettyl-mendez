@@ -1,6 +1,13 @@
-soong_namespace {
-}
+// Version: 1
+// Changelog:
+// - Se actualizó el namespace de Soong para device/motorola/pettyl.
 
-subdirs = [
-    "*"
-]
+soong_namespace {
+    imports: [
+        "device/motorola/msm8937-common",
+        "hardware/google/interfaces",
+        "hardware/google/pixel",
+        "hardware/qcom-caf/msm8996",
+        "vendor/motorola/msm8937-common"
+    ],
+}
