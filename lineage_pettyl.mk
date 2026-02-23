@@ -1,24 +1,25 @@
-# Version: 2
+# Version: 3
 # Changelog:
-# - Se cambió el nombre del producto de james a pettyl. [cite: 8]
-# - Se actualizaron las rutas de herencia a pettyl. [cite: 8]
+# - Se cambió el nombre del producto de james a pettyl.
+# - Se actualizaron las rutas de herencia a pettyl.
 # - Se añadieron las flags de Android Go Edition para optimizar RAM.
+# - Se corrigió el orden de herencia para asegurar que vendor/lineage cargue después de las bases de AOSP.
 
-# Inherit from those products. Most specific first.
+# Heredar configuraciones de 64 bits y telefonía base
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
-# Inherit from Android Go configurations
+# Configuración de Android Go (Low RAM)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/mainline_low_ram.mk)
 
-# Inherit from pettyl device setup
+# Heredar del árbol de dispositivo y del vendor común de Motorola si existe
 $(call inherit-product, device/motorola/pettyl/device.mk)
 
-# Inherit some common Lineage stuff.
+# IMPORTANTE: Heredar de Lineage al final para que sobreescriba configuraciones globales
 $(call inherit-product, vendor/lineage/config/common_full_phone.mk)
 
-# Device identifier
+# Identificadores del Producto
 PRODUCT_NAME := lineage_pettyl
 PRODUCT_DEVICE := pettyl
 PRODUCT_BRAND := motorola
