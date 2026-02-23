@@ -1,22 +1,22 @@
-# Audio
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.vendor.audio.fluence.speaker=false
+# Version: 1
+# Changelog:
+# - Ajuste de densidad de pantalla y optimización de dalvik para low-ram.
 
-# Dalvik
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.dex2oat-threads=2
+# Audio
+TARGET_CORE_DATA_SUBSYS_CONFIG := /vendor/etc/audio_platform_info.xml
 
 # Display
-PRODUCT_PROPERTY_OVERRIDES += \
-    debug.hwui.use_buffer_age=false
+ro.sf.lcd_density=320
 
-# GPU
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.opengles.version=196608
+# Dalvik heap configurations for 1GB/1.5GB RAM
+dalvik.vm.heapstartsize=8m
+dalvik.vm.heapgrowthlimit=128m
+dalvik.vm.heapsize=256m
+dalvik.vm.heaptargetutilization=0.75
+dalvik.vm.heapminfree=512k
+dalvik.vm.heapmaxfree=8m
 
-# Sensors
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.hardware.sensors=james \
-    ro.vendor.sensors.amd=false \
-    ro.vendor.sensors.gravity=false \
-    ro.vendor.sensors.laccel=false
+# ZRAM and Low RAM Props
+ro.config.low_ram=true
+ro.lmk.low=1001
+config.disable_atlas=true
