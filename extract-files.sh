@@ -13,8 +13,11 @@ fi
 
 set -e
 
-# Required!
-export DEVICE=james
+# Version: 1
+# Changelog:
+# - Se cambió la variable DEVICE de james a pettyl.
+
+export DEVICE=pettyl
 export DEVICE_COMMON=msm8937-common
 export VENDOR=motorola
 
