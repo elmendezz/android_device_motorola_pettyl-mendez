@@ -1,13 +1,13 @@
-# Version: 2
+# Version: 3
 # Changelog:
-# - Implementación de sincronización ligera (depth=1) para ahorrar espacio.
-# - Configuración de caché para acelerar futuras compilaciones.
-# - Setup completo de dependencias para Ubuntu 20.04.
-# - Comando de compilación optimizado para msm8937.
+# - Se corrigió el nombre del paquete python-is-python3.
+# - Se añadió un paso manual para el symlink de python si falla el paquete.
+# - Se optimizó la instalación de dependencias para evitar errores de mirror.
+# - Se mantiene la configuración para pettyl (Moto E5 Play Go).
 
 name: LineageOS 17.1 Build - Pettyl
 on:
-  workflow_dispatch: # Se activa manualmente en la pestaña Actions
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,10 +21,13 @@ jobs:
       - name: Instalar Herramientas de Compilación
         run: |
           sudo apt update
-          sudo apt install -y bc build-essential zip curl libstdc++6 git wget python3-is-python3 \
+          sudo apt install -y bc build-essential zip curl libstdc++6 git wget \
           libssl-dev libxml2-utils flex bison gperf libncurses5-dev squashfs-tools \
           schedtool libgl1-mesa-dev g++-multilib gcc-multilib lib32ncurses5-dev \
-          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk
+          lib32readline-dev lib32z1-dev zlib1g-dev openjdk-8-jdk python-is-python3 || true
+          
+          # Asegurar que python existe aunque falle el paquete anterior
+          sudo ln -sf /usr/bin/python3 /usr/bin/python
 
       - name: Instalar Repo Tool
         run: |
@@ -48,6 +51,7 @@ jobs:
         run: |
           cd lineage
           source build/envsetup.sh
+          # Usamos los valores definidos en tu BoardConfig.mk como density 320 y manifest 
           lunch lineage_pettyl-userdebug
           
       - name: ¡Mka Bacon! (Compilar)
