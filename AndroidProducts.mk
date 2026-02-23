@@ -14,5 +14,15 @@
 # limitations under the License.
 #
 
+# Version: 1
+# Changelog:
+# - Se actualizó el nombre del makefile de producto a lineage_pettyl.mk.
+# - Se definió el COMMON_LUNCH_CHOICES para que aparezca en el menú de lunch.
+
 PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/lineage_pettyl.mk
+
+COMMON_LUNCH_CHOICES := \
+    lineage_pettyl-user \
+    lineage_pettyl-userdebug \
+    lineage_pettyl-eng
